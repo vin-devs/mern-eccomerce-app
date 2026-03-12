@@ -1,10 +1,9 @@
-// vite.config.ts
+// vite.config.js
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react"; // if you’re using React
-import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
   server: {
     proxy: {
       "/api/": "http://localhost:5000",
