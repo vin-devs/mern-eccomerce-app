@@ -10,68 +10,80 @@ const ProductCard = ({ p }) => {
 
   const addToCartHandler = (product, qty) => {
     dispatch(addToCart({ ...product, qty }));
-    toast.success("Item added successfully");
+    toast.success("Added to cart!", {
+      position: "bottom-right",
+      autoClose: 2000,
+    });
   };
 
   return (
-    <div className="max-w-sm relative bg-[#1A1A1A] rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-      <section className="relative">
+    <div className="bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden transition-all duration-300 hover:border-indigo-500/50 group">
+      {/* Product Image */}
+      <div className="relative aspect-video overflow-hidden">
         <Link to={`/product/${p._id}`}>
-          <span className="absolute bottom-3 right-3 bg-pink-100 text-pink-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded-full dark:bg-pink-900 dark:text-pink-300">
-            {p?.brand}
-          </span>
           <img
-            className="cursor-pointer w-full"
             src={p.image}
             alt={p.name}
-            style={{ height: "170px", objectFit: "cover" }}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </Link>
-        <HeartIcon product={p} />
-      </section>
-      <div className="p-5">
-        <div className="flex justify-between">
-          <h5 className="mb-2 text-xl text-white dark:text-white">{p?.name}</h5>
-          <p className="text-block font-semibold text-pink-500">
-            {" "}
-            {p?.price?.toLocaleString("en-US", {
-              style: "currency",
-              currency: "USD",
-            })}{" "}
+
+        {/* Heart Icon */}
+        <div className="absolute top-4 right-4">
+          <HeartIcon product={p} />
+        </div>
+
+        {/* Brand Tag */}
+        <span className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm text-indigo-400 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-lg">
+          {p?.brand}
+        </span>
+
+        {/* Out of Stock Overlay */}
+        {p?.countInStock === 0 && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+            <span className="text-white font-bold uppercase tracking-widest text-xs border border-white/20 px-4 py-2 rounded-lg">
+              Out of Stock
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Product Info */}
+      <div className="p-6">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-lg font-bold text-white truncate group-hover:text-indigo-400 transition-colors">
+            {p?.name}
+          </h3>
+          <p className="text-indigo-400 font-bold text-lg">
+            ${p?.price?.toLocaleString()}
           </p>
         </div>
-        <p className="mb-3 font-normal text-[#CFCFCF]">
-          {p?.description?.substring(0, 60)} ...
+
+        <p className="text-slate-400 text-sm line-clamp-2 mb-6 h-10">
+          {p?.description}
         </p>
-        <section className="flex justify-between items-center">
+
+        {/* Buttons */}
+        <div className="flex gap-3">
           <Link
             to={`/product/${p._id}`}
-            className="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-pink-700 rounded-lg hover:bg-pink-800 focus:ring-4 focus:outline-none focus:ring-pink-300 dark:bg-pink-600 dark:hover:bg-pink-700 dark:focus:ring-pink-800"
+            className="flex-1 bg-slate-800 text-white text-center py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-700 transition-all"
           >
-            Read More
-            <svg
-              className="w-3.5 h-3.5 ml-2"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 14 10"
-            >
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M1 5h12m0 0L9 1m4 4L9 9"
-              />
-            </svg>
+            View Details
           </Link>
+
           <button
-            className="p-2 rounded-full"
+            disabled={p?.countInStock === 0}
             onClick={() => addToCartHandler(p, 1)}
+            className={`p-3 rounded-xl transition-all ${
+              p?.countInStock > 0
+                ? "bg-indigo-600 text-white hover:bg-indigo-500"
+                : "bg-slate-800 text-slate-600 cursor-not-allowed"
+            }`}
           >
-            <AiOutlineShoppingCart size={25} />
+            <AiOutlineShoppingCart size={20} />
           </button>
-        </section>
+        </div>
       </div>
     </div>
   );

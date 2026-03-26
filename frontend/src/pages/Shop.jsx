@@ -2,15 +2,14 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetFilteredProductsQuery } from "../redux/api/productApiSlice";
 import { useFetchCategoriesQuery } from "../redux/api/categoryApiSlice";
-
 import {
   setCategories,
   setProducts,
   setChecked,
 } from "../redux/features/shop/shopSlice";
-
 import Loader from "../components/Loader";
 import ProductCard from "./Products/ProductCard";
+import { AiOutlineSearch } from "react-icons/ai"; // Import search icon
 
 const Shop = () => {
   const dispatch = useDispatch();
@@ -20,43 +19,40 @@ const Shop = () => {
 
   const categoriesQuery = useFetchCategoriesQuery();
   const [priceFilter, setPriceFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // New Search State
 
-  const filteredProductsQuery = useGetFilteredProductsQuery({
-    checked,
-    radio,
-  });
+  const filteredProductsQuery = useGetFilteredProductsQuery({ checked, radio });
 
   useEffect(() => {
-    if (!categoriesQuery.isLoading) {
+    if (categoriesQuery.data) {
       dispatch(setCategories(categoriesQuery.data));
     }
   }, [categoriesQuery.data, dispatch]);
 
   useEffect(() => {
-    if (!checked.length || !radio.length) {
-      if (!filteredProductsQuery.isLoading) {
-        //Filter products based on both checked categories and price filter
-        const filteredProducts = filteredProductsQuery.data.filter(
-          (product) => {
-            // Check if the product price includes the entered price filter value
-            return (
-              product.price.toString().includes(priceFilter) ||
-              product.price === parseInt(priceFilter, 10)
-            );
-          },
-        );
+    if (filteredProductsQuery.data) {
+      const filteredProducts = filteredProductsQuery.data.filter((product) => {
+        // Match Search Term AND Price Filter
+        const matchesSearch = product.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+        const matchesPrice =
+          priceFilter === "" ||
+          product.price.toString().includes(priceFilter) ||
+          product.price <= parseInt(priceFilter, 10);
 
-        dispatch(setProducts(filteredProducts));
-      }
+        return matchesSearch && matchesPrice;
+      });
+      dispatch(setProducts(filteredProducts));
     }
-  }, [checked, radio, filteredProductsQuery.data, dispatch, priceFilter]);
-
-  const handleBrandClick = (brand) => {
-    const productsByBrand = filteredProductsQuery.data?.filter(
-      (product) => product.brand === brand,
-    );
-    dispatch(setProducts(productsByBrand));
-  };
+  }, [
+    checked,
+    radio,
+    filteredProductsQuery.data,
+    dispatch,
+    priceFilter,
+    searchTerm,
+  ]);
 
   const handleCheck = (value, id) => {
     const updatedChecked = value
@@ -65,111 +61,159 @@ const Shop = () => {
     dispatch(setChecked(updatedChecked));
   };
 
-  //Add "All Brands" option to uniqueBrands
   const uniqueBrands = [
     ...Array.from(
-      new Set(
-        filteredProductsQuery.data
-          ?.map((product) => product.brand)
-          .filter((brand) => brand !== undefined),
-      ),
+      new Set(filteredProductsQuery.data?.map((p) => p.brand).filter(Boolean)),
     ),
   ];
 
-  const handlePriceChange = (e) => {
-    //Update the price filter state when the user types in the input filed
-    setPriceFilter(e.target.value);
-  };
-
   return (
-    <>
-      <div className="container mx-auto">
-        <div className="flex md:flex-row">
-          <div className="bg-[#151515] p-3 mt-2 mb-2">
-            <h2 className="h4 text-center py-2 bg-black rounded-full mb-2">
-              Filter by Categories
-            </h2>
+    <div className="bg-[#0a0a0c] min-h-screen text-white">
+      <div className="container mx-auto px-4 lg:px-8 py-8">
+        {/* Search Bar Header */}
+        <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="relative w-full max-w-2xl group">
+            <AiOutlineSearch
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors"
+              size={20}
+            />
+            <input
+              type="text"
+              placeholder="Search premium products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-slate-900/40 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all backdrop-blur-sm shadow-xl"
+            />
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="text-slate-500 text-sm font-medium uppercase tracking-widest">
+              Available Items
+            </p>
+            <p className="text-2xl font-bold text-indigo-500">
+              {products?.length}
+            </p>
+          </div>
+        </div>
 
-            <div className="p-5 w-[15rem]">
-              {categories?.map((c) => (
-                <div key={c._id} className="mb-2">
-                  <div className="flex items-center mr-4">
-                    <input
-                      type="checkbox"
-                      id="red-checkbox"
-                      onChange={(e) => handleCheck(e.target.checked, c._id)}
-                      className="w-4 h-4 text-pink-600 bg-gray-100 border-gray-300 rounded focus:ring-pink-500 dark:focus:ring-pink-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                    />
+        <div className="flex flex-col md:flex-row gap-10">
+          {/* Sidebar Filter Panel */}
+          <aside className="w-full md:w-72 shrink-0">
+            <div className="sticky top-24 bg-slate-900/40 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+              <h2 className="text-sm font-bold uppercase tracking-widest mb-8 text-slate-400">
+                Refine By
+              </h2>
+
+              {/* Categories */}
+              <div className="mb-8">
+                <h3 className="text-xs font-semibold text-indigo-500 mb-4 uppercase">
+                  Categories
+                </h3>
+                <div className="space-y-3">
+                  {categories?.map((c) => (
                     <label
-                      htmlFor="pink-checkbox"
-                      className="ml-2 text-sm font-medium text-white dark:text-gray-300"
+                      key={c._id}
+                      className="flex items-center group cursor-pointer"
                     >
-                      {c.name}
+                      <input
+                        type="checkbox"
+                        onChange={(e) => handleCheck(e.target.checked, c._id)}
+                        className="h-4 w-4 rounded border-slate-700 bg-slate-800 text-indigo-600 focus:ring-indigo-600 transition-all cursor-pointer"
+                      />
+                      <span className="ml-3 text-sm text-slate-400 group-hover:text-white transition-colors">
+                        {c.name}
+                      </span>
                     </label>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <h2 className="h4 text-center py-2 bg-black rounded-full mb-2">
-              Filter by Brands
-            </h2>
+              </div>
 
-            <div className="p-5">
-              {uniqueBrands?.map((brand) => (
-                <>
-                  <div className="flex items-center mr-4 mb-5">
-                    <input
-                      type="radio"
-                      id={brand}
-                      name="brand"
-                      onChange={() => handleBrandClick(brand)}
-                      className="w-4 h-4 text-pink-400 bg-gray-100 border-gray-300 focus:ring-pink-500 dark:focus:ring-pink-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                    />
-                    <div className="label ml-2 text-sm font-medium text-white dark:text-gray-300">
-                      {brand}
-                    </div>
-                  </div>
-                </>
-              ))}
-            </div>
-            <h2 className="h4 text-center py-2 bg-black rounded-full mb-2">
-              Filter by Price
-            </h2>
-            <div className="p-5 w-[15rem]">
-              <input
-                type="text"
-                placeholder="Enter Price"
-                value={priceFilter}
-                onChange={handlePriceChange}
-                className="w-full px-3 py-2 placeholder-gray-400 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
-              />
-            </div>
-            <div className="p-5 pt-0">
+              {/* Brands */}
+              <div className="mb-8 border-t border-slate-800 pt-8">
+                <h3 className="text-xs font-semibold text-indigo-500 mb-4 uppercase">
+                  Brands
+                </h3>
+                <div className="space-y-3">
+                  {uniqueBrands?.map((brand) => (
+                    <label
+                      key={brand}
+                      className="flex items-center group cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name="brand"
+                        onChange={() =>
+                          dispatch(
+                            setProducts(
+                              filteredProductsQuery.data?.filter(
+                                (p) => p.brand === brand,
+                              ),
+                            ),
+                          )
+                        }
+                        className="h-4 w-4 border-slate-700 bg-slate-800 text-indigo-600 focus:ring-indigo-600"
+                      />
+                      <span className="ml-3 text-sm text-slate-400 group-hover:text-white transition-colors">
+                        {brand}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Filter */}
+              <div className="mb-8 border-t border-slate-800 pt-8">
+                <h3 className="text-xs font-semibold text-indigo-500 mb-4 uppercase">
+                  Max Price ($)
+                </h3>
+                <input
+                  type="number"
+                  placeholder="Filter by budget"
+                  value={priceFilter}
+                  onChange={(e) => setPriceFilter(e.target.value)}
+                  className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-2 text-sm focus:border-indigo-500 transition-all outline-none"
+                />
+              </div>
+
               <button
-                className="w-full border my-4"
-                onClick={() => window.location.reload()}
+                onClick={() => {
+                  setSearchTerm("");
+                  setPriceFilter("");
+                }}
+                className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold uppercase tracking-widest transition-all"
               >
-                Reset
+                Clear Search
               </button>
             </div>
-          </div>
-          <div className="p-3">
-            <h2 className="h4 text-center mb-2">{products?.length} Products</h2>
-            <div className="flex flex-wrap">
+          </aside>
+
+          {/* Main Grid Area */}
+          <main className="flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {products.length === 0 ? (
-                <Loader />
+                <div className="col-span-full py-20 text-center">
+                  {filteredProductsQuery.isLoading ? (
+                    <Loader />
+                  ) : (
+                    <p className="text-slate-500">
+                      No products match your search.
+                    </p>
+                  )}
+                </div>
               ) : (
                 products?.map((p) => (
-                  <div className="p-3" key={p._id}>
+                  <div
+                    key={p._id}
+                    className="transition-transform duration-300 hover:-translate-y-2"
+                  >
                     <ProductCard p={p} />
                   </div>
                 ))
               )}
             </div>
-          </div>
+          </main>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

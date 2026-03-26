@@ -1,37 +1,71 @@
+import { FaCheck } from "react-icons/fa";
+
 const ProgressSteps = ({ step1, step2, step3 }) => {
   return (
-    <div className="flex justify-center items-center space-x-4">
-      <div className={`${step1 ? "text-green-500" : "text-gray-300"}`}>
-        <span className="ml-2">Login</span>
-        <div className="mt-2 text-lg text-center">✅</div>
+    <div className="flex justify-center items-center w-full max-w-2xl mx-auto my-10 px-4">
+      {/* Step 1: Login */}
+      <div className="flex flex-col items-center relative flex-1">
+        <div
+          className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
+            step1
+              ? "bg-indigo-600 border-indigo-600 text-white"
+              : "bg-slate-900 border-slate-700 text-slate-500"
+          }`}
+        >
+          {step1 ? <FaCheck size={12} /> : "1"}
+        </div>
+        <span
+          className={`mt-2 text-[10px] font-bold uppercase tracking-widest ${step1 ? "text-indigo-400" : "text-slate-500"}`}
+        >
+          Login
+        </span>
       </div>
 
-      {step2 && (
-        <>
-          {step1 && <div className="h-0.5 w-[10rem] bg-green-500"></div>}
-          <div className={`${step1 ? "text-green-500" : "text-gray-300"}`}>
-            <span>Shipping</span>
-            <div className="mt-2 text-lg text-center">✅</div>
-          </div>
-        </>
-      )}
+      {/* Line between 1 and 2 */}
+      <div
+        className={`h-[2px] flex-1 mx-[-10px] mb-6 transition-all ${step2 ? "bg-indigo-600" : "bg-slate-800"}`}
+      />
 
-      <>
-        {step1 && step2 && step3 ? (
-          <div className="h-0.5 w-[10rem] bg-green-500"></div>
-        ) : (
-          ""
-        )}
-
-        <div className={`${step3 ? "text-green-500" : "text-gray-300"}`}>
-          <span className={`${!step3 ? "ml-[10rem]" : ""}`}>Summary</span>
-          {step1 && step2 && step3 ? (
-            <div className="mt-2 text-lg text-center">✅</div>
-          ) : (
-            ""
-          )}
+      {/* Step 2: Shipping */}
+      <div className="flex flex-col items-center relative flex-1">
+        <div
+          className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
+            step2
+              ? "bg-indigo-600 border-indigo-600 text-white"
+              : "bg-slate-900 border-slate-700 text-slate-500"
+          }`}
+        >
+          {step2 ? <FaCheck size={12} /> : "2"}
         </div>
-      </>
+        <span
+          className={`mt-2 text-[10px] font-bold uppercase tracking-widest ${step2 ? "text-indigo-400" : "text-slate-500"}`}
+        >
+          Shipping
+        </span>
+      </div>
+
+      {/* Line between 2 and 3 */}
+      <div
+        className={`h-[2px] flex-1 mx-[-10px] mb-6 transition-all ${step3 ? "bg-indigo-600" : "bg-slate-800"}`}
+      />
+
+      {/* Step 3: Summary */}
+      <div className="flex flex-col items-center relative flex-1">
+        <div
+          className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
+            step3
+              ? "bg-indigo-600 border-indigo-600 text-white"
+              : "bg-slate-900 border-slate-700 text-slate-500"
+          }`}
+        >
+          {step3 ? <FaCheck size={12} /> : "3"}
+        </div>
+        <span
+          className={`mt-2 text-[10px] font-bold uppercase tracking-widest ${step3 ? "text-indigo-400" : "text-slate-500"}`}
+        >
+          Summary
+        </span>
+      </div>
     </div>
   );
 };

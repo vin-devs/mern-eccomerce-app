@@ -4,6 +4,13 @@ import Ratings from "./Ratings";
 import { useGetTopProductsQuery } from "../../redux/api/productApiSlice";
 import SmallProduct from "./SmallProduct";
 import Loader from "../../components/Loader";
+import {
+  FaEdit,
+  FaComments,
+  FaThLarge,
+  FaStar,
+  FaUserCircle,
+} from "react-icons/fa";
 
 const ProductTabs = ({
   loadingProductReview,
@@ -15,134 +22,161 @@ const ProductTabs = ({
   setComment,
   product,
 }) => {
-  const { data, isLoading } = useGetTopProductsQuery();
+  const { data: topProducts, isLoading } = useGetTopProductsQuery();
   const [activeTab, setActiveTab] = useState(1);
 
-  if (isLoading) {
-    return <Loader />;
-  }
-
-  const handleTabClick = (tabNumber) => {
-    setActiveTab(tabNumber);
-  };
+  if (isLoading) return <Loader />;
 
   return (
-    <div className="flex flex-col md:flex-row">
-      <section className="mr-[5rem]">
-        <div
-          className={`flex-1 p-4 cursor-pointer text-lg ${activeTab === 1 ? "font-bold" : ""}`}
-          onClick={() => handleTabClick(1)}
-        >
-          Write your Review
-        </div>
-        <div
-          className={`flex-1 p-4 cursor-pointer text-lg ${activeTab === 2 ? "font-bold" : ""}`}
-          onClick={() => handleTabClick(2)}
-        >
-          All Reviews
-        </div>
-        <div
-          className={`flex-1 p-4 cursor-pointer text-lg ${activeTab === 3 ? "font-bold" : ""}`}
-          onClick={() => handleTabClick(3)}
-        >
-          Related Products
-        </div>
+    <div className="flex flex-col w-full max-w-7xl mx-auto px-4 lg:px-0">
+      {/* Tab Navigation */}
+      <section className="flex flex-wrap border-b border-slate-800 mb-10 overflow-x-auto whitespace-nowrap scrollbar-hide">
+        {[
+          { id: 1, label: "Write Review", icon: <FaEdit /> },
+          {
+            id: 2,
+            label: `All Reviews (${product.reviews.length})`,
+            icon: <FaComments />,
+          },
+          { id: 3, label: "Related Products", icon: <FaThLarge /> },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-8 py-4 text-sm font-bold uppercase tracking-widest transition-all relative ${
+              activeTab === tab.id
+                ? "text-indigo-400 border-b-2 border-indigo-500 bg-indigo-500/5"
+                : "text-slate-500 hover:text-slate-300"
+            }`}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
       </section>
-      {/*Second Part */}
-      <section>
+
+      {/* Tab Content Container */}
+      <div className="min-h-[400px]">
+        {/* Tab 1: Write Review */}
         {activeTab === 1 && (
-          <div className="mt-4">
+          <div className="max-w-2xl animate-fade-in">
             {userInfo ? (
-              <form onSubmit={submitHandler}>
-                <div className="my-2">
-                  <label htmlFor="rating" className="block text-xl mb-2">
-                    Ratings
+              <form
+                onSubmit={submitHandler}
+                className="bg-slate-900/40 border border-slate-800 p-8 rounded-3xl backdrop-blur-sm"
+              >
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                  <FaStar className="text-yellow-500" /> Share Your Experience
+                </h3>
+
+                <div className="mb-6">
+                  <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 ml-1">
+                    Rating
                   </label>
                   <select
-                    id="rating"
                     required
                     value={rating}
                     onChange={(e) => setRating(e.target.value)}
-                    className="p-2 border rounded-lg xl:w-[40rem] text-black"
+                    className="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-white"
                   >
-                    <option value="">Select...</option>
-                    <option value="1">Inferior</option>
-                    <option value="2">Decent</option>
-                    <option value="3">Great</option>
-                    <option value="4">Excellent</option>
-                    <option value="5">Exceptional</option>
+                    <option value="">Select a score...</option>
+                    <option value="1">1 - Inferior</option>
+                    <option value="2">2 - Decent</option>
+                    <option value="3">3 - Great</option>
+                    <option value="4">4 - Excellent</option>
+                    <option value="5">5 - Exceptional</option>
                   </select>
                 </div>
-                <div className="my-2">
-                  <label htmlFor="comment" className="block text-xl mb-2">
-                    Comment
+
+                <div className="mb-6">
+                  <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3 ml-1">
+                    Your Comment
                   </label>
                   <textarea
-                    id="comment"
-                    rows="3"
+                    rows="4"
                     required
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
-                    className="p-2 border rounded-lg xl:w-[40rem] text-black"
+                    className="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-white placeholder:text-slate-600"
+                    placeholder="Tell us what you liked or disliked..."
                   ></textarea>
                 </div>
+
                 <button
                   type="submit"
                   disabled={loadingProductReview}
-                  className="bg-pink-600 text-white py-2 px-4 rounded-lg hover:bg-pink-700 focus:ring:ring-2 focus:ring-pink-500 focus:ring-opacity-50"
+                  className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white py-3 px-10 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-xl shadow-indigo-600/20 active:scale-95 disabled:opacity-50"
                 >
-                  Submit
+                  {loadingProductReview ? "Submitting..." : "Post Review"}
                 </button>
               </form>
             ) : (
-              <p>
-                Please <Link to="/login">sign in</Link> to write a review{" "}
-              </p>
+              <div className="bg-slate-900/40 border border-dashed border-slate-700 p-10 rounded-3xl text-center">
+                <p className="text-slate-400 mb-4 font-medium italic">
+                  Already purchased this product?
+                </p>
+                <Link
+                  to="/login"
+                  className="text-indigo-400 font-bold hover:underline underline-offset-4"
+                >
+                  Sign in to leave a review →
+                </Link>
+              </div>
             )}
           </div>
         )}
-      </section>
 
-      <section>
+        {/* Tab 2: All Reviews */}
         {activeTab === 2 && (
-          <>
-            <div>{product.reviews.length === 0 && <p>No Reviews</p>}</div>
-
-            <div>
-              {product.reviews.map((review) => (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+            {product.reviews.length === 0 ? (
+              <div className="col-span-full py-10 text-slate-500 italic text-center border border-dashed border-slate-800 rounded-3xl">
+                No reviews yet. Be the first to share your thoughts!
+              </div>
+            ) : (
+              product.reviews.map((review) => (
                 <div
                   key={review._id}
-                  className="bg-[#1A1A1A] p-4 rounded-lg xl:ml-[2rem] sm:ml-[0rem] xl:w-[50rem] sm:w-[24rem] mb-5"
+                  className="bg-slate-900/40 border border-slate-800 p-6 rounded-2xl hover:border-slate-700 transition-all flex gap-4"
                 >
-                  <div className="flex justify-between">
-                    <strong className="text-[#B0B0B0]">{review.name}</strong>
-                    <p className="text-[#B0B0B0]">
-                      {review.createdAt.substring(0, 10)}
+                  <div className="hidden sm:block">
+                    <FaUserCircle size={40} className="text-slate-700" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h4 className="font-bold text-slate-200">
+                          {review.name}
+                        </h4>
+                        <div className="scale-75 -ml-4">
+                          <Ratings value={review.rating} />
+                        </div>
+                      </div>
+                      <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-800 px-2 py-1 rounded">
+                        {review.createdAt.substring(0, 10)}
+                      </span>
+                    </div>
+                    <p className="text-slate-400 text-sm leading-relaxed italic">
+                      "{review.comment}"
                     </p>
                   </div>
-                  <p className="my-4">{review.comment}</p>
-                  <Ratings value={review.rating} />
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </section>
-      <section>
-        {activeTab === 3 && (
-          <section className="ml-[4rem] flex flex-wrap">
-            {!data ? (
-              <Loader />
-            ) : (
-              data.map((product) => (
-                <div key={product._id}>
-                  <SmallProduct product={product} />
                 </div>
               ))
             )}
-          </section>
+          </div>
         )}
-      </section>
+
+        {/* Tab 3: Related Products - UPDATED TO GRID */}
+        {activeTab === 3 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in">
+            {!topProducts ? (
+              <Loader />
+            ) : (
+              topProducts.map((p) => <SmallProduct key={p._id} product={p} />)
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

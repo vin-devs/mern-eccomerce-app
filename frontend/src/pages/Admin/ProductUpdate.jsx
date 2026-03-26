@@ -9,6 +9,12 @@ import {
 import { useFetchCategoriesQuery } from "../../redux/api/categoryApiSlice";
 import { toast } from "react-toastify";
 import AdminMenu from "./AdminMenu.jsx";
+import {
+  FaEdit,
+  FaTrash,
+  FaCloudUploadAlt,
+  FaChevronLeft,
+} from "react-icons/fa";
 
 const ProductUpdate = () => {
   const { _id } = useParams();
@@ -30,9 +36,8 @@ const ProductUpdate = () => {
   const [brand, setBrand] = useState("");
   const [stock, setStock] = useState(0);
 
-  // ✅ Populate form when product loads
   useEffect(() => {
-    if (productData) {
+    if (productData && productData._id) {
       setName(productData.name);
       setDescription(productData.description);
       setPrice(productData.price);
@@ -44,24 +49,20 @@ const ProductUpdate = () => {
     }
   }, [productData]);
 
-  // ✅ Upload image
   const uploadFileHandler = async (e) => {
     const formData = new FormData();
     formData.append("image", e.target.files[0]);
-
     try {
       const res = await uploadProductImage(formData).unwrap();
-      toast.success("Image uploaded successfully");
+      toast.success("Image updated");
       setImage(res.image);
     } catch (error) {
       toast.error(error?.data?.message || error.error);
     }
   };
 
-  // ✅ Update product
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const formData = new FormData();
       formData.append("image", image);
@@ -74,136 +75,135 @@ const ProductUpdate = () => {
       formData.append("countInStock", stock);
 
       await updateProduct({ productId: _id, formData }).unwrap();
-
-      toast.success("Product successfully updated");
+      toast.success("Product updated successfully");
       navigate("/admin/allproductslist");
     } catch (error) {
-      console.error(error);
       toast.error(error?.data?.message || error.error);
     }
   };
 
-  // ✅ Delete product
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this product?",
-    );
-    if (!confirmDelete) return;
-
+    if (!window.confirm("Permanent delete? This cannot be undone.")) return;
     try {
       await deleteProduct(_id).unwrap();
-      toast.success("Product successfully deleted");
+      toast.success("Product deleted");
       navigate("/admin/allproductslist");
     } catch (error) {
-      console.error(error);
       toast.error(error?.data?.message || error.error);
     }
   };
 
   return (
-    <div className="container xl:mx-[9rem] sm:mx-[0]">
-      <div className="flex flex-col md:flex-row">
-        <AdminMenu />
+    <div className="bg-[#0a0a0c] min-h-screen text-white pb-20">
+      <AdminMenu />
 
-        <div className="md:w-3/4 p-3">
-          <div className="h-12">Update Product</div>
-
-          {image && (
-            <div className="text-center">
-              <img
-                src={image}
-                alt="Product"
-                className="block mx-auto max-h-[200px]"
-              />
+      <div className="container mx-auto px-4 pt-[6rem]">
+        {/* Header with Back Button */}
+        <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-indigo-600/20 rounded-2xl text-indigo-400">
+              <FaEdit size={24} />
             </div>
-          )}
+            <h1 className="text-3xl font-extrabold tracking-tight">
+              Update Product
+            </h1>
+          </div>
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors font-bold uppercase text-xs tracking-widest"
+          >
+            <FaChevronLeft size={10} /> Go Back
+          </button>
+        </div>
 
-          {/* Upload Image */}
-          <div className="mb-3">
-            <label className="border text-white px-4 block w-full text-center rounded-lg cursor-pointer font-bold py-11">
-              Upload Image
-              <input
-                type="file"
-                accept="image/*"
-                onChange={uploadFileHandler}
-                className="hidden"
-              />
-            </label>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          {/* Left: Image Management */}
+          <div className="lg:col-span-1">
+            <div className="bg-slate-900/40 border border-slate-800 p-2 rounded-[2.5rem] backdrop-blur-md shadow-2xl sticky top-[8rem]">
+              <div className="relative group overflow-hidden rounded-[2rem]">
+                <img
+                  src={image}
+                  alt={name}
+                  className="w-full h-[400px] object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all cursor-pointer">
+                  <FaCloudUploadAlt
+                    size={30}
+                    className="mb-2 text-indigo-400"
+                  />
+                  <span className="text-[10px] font-black uppercase tracking-[2px]">
+                    Replace Image
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={uploadFileHandler}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
           </div>
 
-          <div className="p-3">
-            {/* Name & Price */}
-            <div className="flex flex-wrap">
-              <div>
-                <label>Name</label> <br />
+          {/* Right: Detailed Edit Form */}
+          <div className="lg:col-span-2 bg-slate-900/40 border border-slate-800 p-8 rounded-[2.5rem] backdrop-blur-md shadow-2xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-black uppercase tracking-[2px] text-slate-500 ml-1">
+                  Name
+                </label>
                 <input
                   type="text"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
+                  className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl focus:border-indigo-500 transition-all outline-none"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
 
-              <div className="ml-10">
-                <label>Price</label> <br />
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-black uppercase tracking-[2px] text-slate-500 ml-1">
+                  Price ($)
+                </label>
                 <input
                   type="number"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
+                  className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl focus:border-indigo-500 transition-all outline-none"
                   value={price}
                   onChange={(e) => setPrice(Number(e.target.value))}
                 />
               </div>
-            </div>
 
-            {/* Quantity & Brand */}
-            <div className="flex flex-wrap">
-              <div>
-                <label>Quantity</label> <br />
-                <input
-                  type="number"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Number(e.target.value))}
-                />
+              <div className="flex flex-col gap-2 md:col-span-2">
+                <label className="text-xs font-black uppercase tracking-[2px] text-slate-500 ml-1">
+                  Description
+                </label>
+                <textarea
+                  rows="4"
+                  className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl focus:border-indigo-500 transition-all outline-none resize-none"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                ></textarea>
               </div>
 
-              <div className="ml-10">
-                <label>Brand</label> <br />
-                <input
-                  type="text"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Description */}
-            <label className="my-5 block">Description</label>
-            <textarea
-              className="p-2 mb-3 bg-[#101011] border rounded-lg w-[95%] text-white"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            ></textarea>
-
-            {/* Stock & Category */}
-            <div className="flex justify-between">
-              <div>
-                <label>Count In Stock</label> <br />
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-black uppercase tracking-[2px] text-slate-500 ml-1">
+                  Stock
+                </label>
                 <input
                   type="number"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
+                  className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl focus:border-indigo-500 transition-all outline-none"
                   value={stock}
                   onChange={(e) => setStock(Number(e.target.value))}
                 />
               </div>
 
-              <div>
-                <label>Category</label> <br />
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-black uppercase tracking-[2px] text-slate-500 ml-1">
+                  Category
+                </label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
+                  className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl focus:border-indigo-500 transition-all outline-none appearance-none"
                 >
                   <option value="">Select Category</option>
                   {categories.map((c) => (
@@ -213,22 +213,45 @@ const ProductUpdate = () => {
                   ))}
                 </select>
               </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-black uppercase tracking-[2px] text-slate-500 ml-1">
+                  Quantity
+                </label>
+                <input
+                  type="number"
+                  className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl focus:border-indigo-500 transition-all outline-none"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-black uppercase tracking-[2px] text-slate-500 ml-1">
+                  Brand
+                </label>
+                <input
+                  type="text"
+                  className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl focus:border-indigo-500 transition-all outline-none"
+                  value={brand}
+                  onChange={(e) => setBrand(e.target.value)}
+                />
+              </div>
             </div>
 
-            {/* Buttons */}
-            <div>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-10">
               <button
                 onClick={handleSubmit}
-                className="py-4 px-10 mt-5 rounded-lg text-lg font-bold bg-green-600 mr-6"
+                className="flex-1 py-4 bg-emerald-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-emerald-500 hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all active:scale-95"
               >
-                Update
+                Save Changes
               </button>
-
               <button
                 onClick={handleDelete}
-                className="py-4 px-10 mt-5 rounded-lg text-lg font-bold bg-pink-600"
+                className="flex-1 py-4 bg-rose-600/10 text-rose-500 border border-rose-500/20 font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-rose-600 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2"
               >
-                Delete
+                <FaTrash size={12} /> Delete Product
               </button>
             </div>
           </div>

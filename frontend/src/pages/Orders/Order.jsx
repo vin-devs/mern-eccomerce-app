@@ -3,8 +3,17 @@ import { Link, useParams } from "react-router-dom";
 import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import {
+  FaBox,
+  FaCreditCard,
+  FaUser,
+  FaTruck,
+  FaCheckCircle,
+  FaTimesCircle,
+} from "react-icons/fa";
 import Message from "../../components/Message";
 import Loader from "../../components/Loader";
+import moment from "moment";
 import {
   useDeliverOrderMutation,
   useGetOrderDetailsQuery,
@@ -14,56 +23,49 @@ import {
 
 const Order = () => {
   const { id: orderId } = useParams();
-
   const {
     data: order,
     refetch,
     isLoading,
     error,
   } = useGetOrderDetailsQuery(orderId);
-
   const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
   const [deliverOrder, { isLoading: loadingDeliver }] =
     useDeliverOrderMutation();
   const { userInfo } = useSelector((state) => state.auth);
-
   const [{ isPending }, paypalDispatch] = usePayPalScriptReducer();
-
   const {
     data: paypal,
-    isLoading: loadingPaPal,
+    isLoading: loadingPayPal,
     error: errorPayPal,
   } = useGetPaypalClientIdQuery();
 
   useEffect(() => {
-    if (!errorPayPal && !loadingPaPal && paypal.clientId) {
-      const loadingPaPalScript = async () => {
+    if (!errorPayPal && !loadingPayPal && paypal?.clientId) {
+      const loadingPayPalScript = async () => {
         paypalDispatch({
           type: "resetOptions",
-          value: {
-            "client-id": paypal.clientId,
-            currency: "USD",
-          },
+          value: { "client-id": paypal.clientId, currency: "USD" },
         });
         paypalDispatch({ type: "setLoadingStatus", value: "pending" });
       };
 
       if (order && !order.isPaid) {
         if (!window.paypal) {
-          loadingPaPalScript();
+          loadingPayPalScript();
         }
       }
     }
-  }, [errorPayPal, loadingPaPal, order, paypal, paypalDispatch]);
+  }, [errorPayPal, loadingPayPal, order, paypal, paypalDispatch]);
 
   function onApprove(data, actions) {
     return actions.order.capture().then(async function (details) {
       try {
         await payOrder({ orderId, details });
         refetch();
-        toast.success("Order is paid");
-      } catch (error) {
-        toast.error(error?.data?.message || error.message);
+        toast.success("Payment Successful");
+      } catch (err) {
+        toast.error(err?.data?.message || err.message);
       }
     });
   }
@@ -73,155 +75,231 @@ const Order = () => {
       .create({
         purchase_units: [{ amount: { value: order.totalPrice } }],
       })
-      .then((orderID) => {
-        return orderID;
-      });
+      .then((id) => id);
   }
 
+  // --- THE FIX: Re-adding the missing onError function ---
   function onError(err) {
-    toast.error(err.message);
+    toast.error(err.message || "An error occurred with PayPal");
   }
 
   const deliverHandler = async () => {
-    await deliverOrder(orderId);
-    refetch();
+    try {
+      await deliverOrder(orderId);
+      refetch();
+      toast.success("Order Marked as Delivered");
+    } catch (err) {
+      toast.error(err?.data?.message || err.message);
+    }
   };
 
-  return isLoading ? (
-    <Loader />
-  ) : error ? (
-    <Message variant="danger">{error.data.message}</Message>
-  ) : (
-    <div className="container flex flex-col ml-[10rem] md:flex-row">
-      <div className="md:w-2/3 pr-4">
-        <div className="border gray-300 mt-5 pb-4 mb-5">
-          {order.orderItems.length === 0 ? (
-            <Message>Order is empty</Message>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-[80%]">
-                <thead className="border-b-2">
+  if (isLoading)
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  if (error)
+    return (
+      <div className="container mx-auto p-10">
+        <Message variant="danger">
+          {error?.data?.message || error.message}
+        </Message>
+      </div>
+    );
+
+  return (
+    <div className="bg-[#0a0a0c] min-h-screen text-white pb-20">
+      <div className="container mx-auto px-4 lg:px-12 pt-10">
+        <h1 className="text-3xl font-extrabold tracking-tight mb-8">
+          Order{" "}
+          <span className="text-indigo-500 text-lg ml-2 font-mono">
+            #{order._id}
+          </span>
+        </h1>
+
+        <div className="flex flex-col lg:flex-row gap-10">
+          {/* LEFT: Order Content */}
+          <div className="flex-1 space-y-8">
+            {/* Status Badges */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div
+                className={`p-4 rounded-2xl border flex items-center gap-4 ${order.isPaid ? "bg-green-500/10 border-green-500/20" : "bg-red-500/10 border-red-500/20"}`}
+              >
+                {order.isPaid ? (
+                  <FaCheckCircle className="text-green-500 text-2xl" />
+                ) : (
+                  <FaTimesCircle className="text-red-500 text-2xl" />
+                )}
+                <div>
+                  <p className="text-xs uppercase font-bold tracking-widest text-slate-500">
+                    Payment Status
+                  </p>
+                  <p
+                    className={`font-bold ${order.isPaid ? "text-green-400" : "text-red-400"}`}
+                  >
+                    {order.isPaid
+                      ? `Paid on ${moment(order.paidAt).format("LLL")}`
+                      : "Awaiting Payment"}
+                  </p>
+                </div>
+              </div>
+
+              <div
+                className={`p-4 rounded-2xl border flex items-center gap-4 ${order.isDelivered ? "bg-green-500/10 border-green-500/20" : "bg-yellow-500/10 border-yellow-500/20"}`}
+              >
+                {order.isDelivered ? (
+                  <FaTruck className="text-green-500 text-2xl" />
+                ) : (
+                  <FaBox className="text-yellow-500 text-2xl" />
+                )}
+                <div>
+                  <p className="text-xs uppercase font-bold tracking-widest text-slate-500">
+                    Delivery Status
+                  </p>
+                  <p
+                    className={`font-bold ${order.isDelivered ? "text-green-400" : "text-yellow-400"}`}
+                  >
+                    {order.isDelivered
+                      ? `Delivered on ${moment(order.deliveredAt).format("LLL")}`
+                      : "In Transit"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Items Table */}
+            <div className="bg-slate-900/40 border border-slate-800 rounded-3xl overflow-hidden backdrop-blur-md">
+              <table className="w-full">
+                <thead className="bg-slate-800/50 text-slate-400 text-xs uppercase tracking-widest">
                   <tr>
-                    <th className="p-2">Image</th>
-                    <th className="p-2">Product</th>
-                    <th className="p-2 text-center">Quantity</th>
-                    <th className="p-2">Unit Price</th>
-                    <th className="p-2">Total</th>
+                    <th className="px-6 py-4 text-left">Item</th>
+                    <th className="px-6 py-4 text-center">Qty</th>
+                    <th className="px-6 py-4 text-right">Unit</th>
+                    <th className="px-6 py-4 text-right">Total</th>
                   </tr>
                 </thead>
-
-                <tbody>
+                <tbody className="divide-y divide-slate-800">
                   {order.orderItems.map((item, index) => (
-                    <tr key={index}>
-                      <td className="p-2">
+                    <tr
+                      key={index}
+                      className="hover:bg-slate-800/30 transition-colors"
+                    >
+                      <td className="px-6 py-4 flex items-center gap-4">
                         <img
                           src={item.image}
                           alt={item.name}
-                          className="w-16 h-16 object-cover"
+                          className="w-12 h-12 rounded-lg object-cover"
                         />
+                        <Link
+                          to={`/product/${item.product}`}
+                          className="font-medium hover:text-indigo-400 transition-colors"
+                        >
+                          {item.name}
+                        </Link>
                       </td>
-
-                      <td className="p-2">
-                        <Link to={`/product/${item.product}`}>{item.name}</Link>
+                      <td className="px-6 py-4 text-center font-semibold">
+                        {item.qty}
                       </td>
-
-                      <td className="p-2 text-center">{item.qty}</td>
-                      <td className="p-2 text-center">{item.price}</td>
-                      <td className="p-2 text-center">
-                        $ {(item.qty * item.price).toFixed(2)}
+                      <td className="px-6 py-4 text-right text-slate-400">
+                        ${item.price.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 text-right font-bold text-indigo-400">
+                        ${(item.qty * item.price).toFixed(2)}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      <div className="md:w-1/3">
-        <div className="mt-5 border-gray-300 pb-4 mb-4">
-          <h2 className="text-xl font-bold mb-2">Shipping</h2>
-          <p className="mb-4 mt-4">
-            <strong className="text-pink-500">Order:</strong> {order._id}
-          </p>
-
-          <p className="mb-4">
-            <strong className="text-pink-500">Name:</strong>{" "}
-            {order.user.username}
-          </p>
-
-          <p className="mb-4">
-            <strong className="text-pink-500">Email:</strong> {order.user.email}
-          </p>
-
-          <p className="mb-4">
-            <strong className="text-pink-500">Address:</strong>{" "}
-            {order.shippingAddress.address}, {order.shippingAddress.city}{" "}
-            {order.shippingAddress.postalCode}, {order.shippingAddress.country}
-          </p>
-
-          <p className="mb-4">
-            <strong className="text-pink-500">Method:</strong>{" "}
-            {order.paymentMethod}
-          </p>
-
-          {order.isPaid ? (
-            <Message variant="success">Paid on {order.paidAt}</Message>
-          ) : (
-            <Message variant="danger">Not paid</Message>
-          )}
-        </div>
-
-        <h2 className="text-xl font-bold mb-2 mt-[3rem]">Order Summary</h2>
-        <div className="flex justify-between mb-2">
-          <span>Items</span>
-          <span>$ {order.itemsPrice}</span>
-        </div>
-        <div className="flex justify-between mb-2">
-          <span>Shipping</span>
-          <span>$ {order.shippingPrice}</span>
-        </div>
-        <div className="flex justify-between mb-2">
-          <span>Tax</span>
-          <span>$ {order.taxPrice}</span>
-        </div>
-        <div className="flex justify-between mb-2">
-          <span>Total</span>
-          <span>$ {order.totalPrice}</span>
-        </div>
-
-        {!order.isPaid && (
-          <div>
-            {loadingPay && <Loader />}{" "}
-            {isPending ? (
-              <Loader />
-            ) : (
-              <div>
-                <div>
-                  <PayPalButtons
-                    createOrder={createOrder}
-                    onApprove={onApprove}
-                    onError={onError}
-                  ></PayPalButtons>
+          {/* RIGHT: Summary & Actions */}
+          <div className="w-full lg:w-96 space-y-6">
+            <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-6">
+              <h2 className="text-lg font-bold mb-6 flex items-center gap-2 border-b border-slate-800 pb-4">
+                <FaUser className="text-indigo-500" /> Customer Info
+              </h2>
+              <div className="space-y-4 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Name:</span>
+                  <span className="font-medium">{order.user.username}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Email:</span>
+                  <span className="font-medium text-indigo-400">
+                    {order.user.email}
+                  </span>
+                </div>
+                <div className="pt-4 border-t border-slate-800">
+                  <p className="text-slate-500 mb-2 font-bold text-[10px] uppercase tracking-widest">
+                    Shipping Address
+                  </p>
+                  <p className="text-slate-300 leading-relaxed">
+                    {order.shippingAddress.address},{" "}
+                    {order.shippingAddress.city}
+                    <br />
+                    {order.shippingAddress.postalCode},{" "}
+                    {order.shippingAddress.country}
+                  </p>
                 </div>
               </div>
-            )}
-          </div>
-        )}
+            </div>
 
-        {loadingDeliver && <Loader />}
-        {userInfo && userInfo.isAdmin && order.isPaid && !order.isDelivered && (
-          <div>
-            <button
-              type="button"
-              className="bg-pink-500 text-white w-full py-2"
-              onClick={deliverHandler}
-            >
-              Mark As Delivered
-            </button>
+            <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-3xl p-6 shadow-2xl">
+              <h2 className="text-lg font-bold mb-6 flex items-center gap-2 border-b border-slate-800 pb-4">
+                <FaCreditCard className="text-indigo-500" /> Order Summary
+              </h2>
+              <div className="space-y-3 text-sm mb-6">
+                <div className="flex justify-between text-slate-400">
+                  <span>Items</span>
+                  <span>${order.itemsPrice}</span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>Shipping</span>
+                  <span>${order.shippingPrice}</span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>Tax</span>
+                  <span>${order.taxPrice}</span>
+                </div>
+                <div className="flex justify-between text-xl font-bold pt-4 border-t border-slate-800 text-white">
+                  <span>Total</span>
+                  <span className="text-indigo-400">${order.totalPrice}</span>
+                </div>
+              </div>
+
+              {!order.isPaid && (
+                <div className="mt-4">
+                  {loadingPay || isPending ? (
+                    <Loader />
+                  ) : (
+                    <PayPalButtons
+                      createOrder={createOrder}
+                      onApprove={onApprove}
+                      onError={onError}
+                    />
+                  )}
+                </div>
+              )}
+
+              {userInfo?.isAdmin && order.isPaid && !order.isDelivered && (
+                <button
+                  onClick={deliverHandler}
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 mt-4"
+                >
+                  {loadingDeliver ? (
+                    <Loader size="sm" />
+                  ) : (
+                    <>
+                      <FaTruck /> Mark As Delivered
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
