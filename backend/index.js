@@ -16,10 +16,13 @@ import orderRoutes from "./routes/orderRoutes.js";
 dotenv.config();
 const port = process.env.PORT || 5000;
 
+// Connect to Database
 connectDB();
+
 const app = express();
 
-// 1. Enhanced CORS Configuration
+// 1. Fully Enhanced CORS Configuration
+// This ensures Vercel can talk to Render securely
 app.use(
   cors({
     origin: [
@@ -28,26 +31,33 @@ app.use(
       "https://marketbasex-ki1yihvn0-mutukuvincent752-7467s-projects.vercel.app",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, // Required for cookies (JWT)
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+    ],
+    optionsSuccessStatus: 200, // Forces 200 OK for OPTIONS (some browsers hate 204)
   }),
 );
 
-// 2. Manual Handshake Handler (Replaces the "poisonous" app.options("*"))
-// This tells the browser the server is ready for the POST request
+// 2. Manual Handshake Middleware (The "Safe" Wildcard)
+// This avoids the path-to-regexp crash while handling Preflights
 app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Credentials", "true");
   if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
+    return res.status(200).send("OK");
   }
   next();
 });
 
-// 3. Increased Payload Limits (Fixes silent 500 errors for large image data)
+// 3. Payload Limits & Middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
-// Routes
+// 4. Routes
 app.use("/api/users", userRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/products", productRoutes);
