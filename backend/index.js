@@ -19,20 +19,22 @@ const port = process.env.PORT || 5000;
 connectDB();
 const app = express();
 
-// Updated CORS Middleware Configuration
+// 1. Enhanced CORS (Added Methods)
 app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://marketbasex.vercel.app", // Clean Production Domain
-      "https://marketbasex-ki1yihvn0-mutukuvincent752-7467s-projects.vercel.app", // Preview Domain
+      "https://marketbasex.vercel.app",
+      "https://marketbasex-ki1yihvn0-mutukuvincent752-7467s-projects.vercel.app",
     ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   }),
 );
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// 2. Increased Payload Limits (Fixes silent 500 errors for large data)
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
 // Routes
@@ -47,6 +49,5 @@ app.get("/api/config/paypal", (req, res) => {
 });
 
 const __dirname = path.resolve();
-// app.use("/uploads", express.static(path.join(__dirname + "/uploads")));
 
 app.listen(port, () => console.log(`Server started on port ${port}`));
