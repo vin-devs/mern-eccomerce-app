@@ -7,7 +7,7 @@ import {
   AiOutlineShoppingCart,
   AiOutlineClose,
 } from "react-icons/ai";
-import { FaHeart, FaChevronDown } from "react-icons/fa";
+import { FaHeart } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useLogoutMutation } from "../../redux/api/usersApiSlice";
@@ -88,7 +88,7 @@ const Navigation = () => {
 
   return (
     <>
-      {/* --- DESKTOP SIDEBAR (Visible only on Laptop/Tablet) --- */}
+      {/* --- DESKTOP SIDEBAR --- */}
       <nav
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
@@ -120,20 +120,24 @@ const Navigation = () => {
               <button
                 className={`flex items-center w-full p-3 rounded-xl hover:bg-slate-800/50 ${!isExpanded && "justify-center"}`}
               >
-                <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-xs">
-                  {userInfo.username.charAt(0).toUpperCase()}
+                <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-xs uppercase">
+                  {userInfo.username.charAt(0)}
                 </div>
                 {isExpanded && (
                   <div className="ml-3 text-left">
-                    <p className="text-sm font-bold text-white">
+                    <p className="text-sm font-bold text-white truncate w-32">
                       {userInfo.username}
                     </p>
                   </div>
                 )}
               </button>
+
               <div className="absolute bottom-full left-0 w-64 mb-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all bg-slate-900 border border-slate-800 rounded-xl p-2 shadow-2xl z-[1001]">
                 {userInfo.isAdmin && (
                   <div className="border-b border-slate-800 mb-2 pb-2">
+                    <p className="px-4 py-2 text-[10px] font-black text-indigo-500 uppercase tracking-widest">
+                      Store Mgmt
+                    </p>
                     <Link
                       to="/admin/dashboard"
                       className="block px-4 py-2 text-xs text-slate-300 hover:bg-indigo-600 rounded-lg"
@@ -146,8 +150,29 @@ const Navigation = () => {
                     >
                       Products
                     </Link>
+                    <Link
+                      to="/admin/categorylist"
+                      className="block px-4 py-2 text-xs text-slate-300 hover:bg-indigo-600 rounded-lg"
+                    >
+                      Categories
+                    </Link>
+                    <Link
+                      to="/admin/orderlist"
+                      className="block px-4 py-2 text-xs text-slate-300 hover:bg-indigo-600 rounded-lg"
+                    >
+                      Orders
+                    </Link>
+                    <Link
+                      to="/admin/userlist"
+                      className="block px-4 py-2 text-xs text-slate-300 hover:bg-indigo-600 rounded-lg"
+                    >
+                      Users
+                    </Link>
                   </div>
                 )}
+                <p className="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                  Account
+                </p>
                 <Link
                   to="/profile"
                   className="block px-4 py-2 text-xs text-slate-300 hover:bg-indigo-600 rounded-lg"
@@ -175,7 +200,7 @@ const Navigation = () => {
         </div>
       </nav>
 
-      {/* --- MOBILE BOTTOM BAR (Visible only on Phones) --- */}
+      {/* --- MOBILE BOTTOM BAR --- */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-[#0a0a0c] border-t border-slate-800 flex items-center justify-around px-2 z-[999]">
         <NavItem to="/" icon={AiOutlineHome} label="Home" mobile />
         <NavItem to="/shop" icon={AiOutlineShopping} label="Shop" mobile />
@@ -208,60 +233,81 @@ const Navigation = () => {
         )}
       </nav>
 
-      {/* --- MOBILE FULLSCREEN MENU OVERLAY --- */}
+      {/* --- MOBILE FULLSCREEN MENU --- */}
       {showMobileMenu && (
-        <div className="md:hidden fixed inset-0 bg-[#0a0a0c] z-[1000] p-6 flex flex-col animate-in fade-in duration-300">
-          <div className="flex justify-between items-center mb-8">
+        <div className="md:hidden fixed inset-0 bg-[#0a0a0c] z-[1000] p-6 flex flex-col animate-in fade-in slide-in-from-bottom duration-300 overflow-y-auto">
+          <div className="flex justify-between items-center mb-10">
             <MarketBaseLogo mobile />
             <button
               onClick={() => setShowMobileMenu(false)}
-              className="text-white text-2xl"
+              className="text-white text-2xl p-2 bg-slate-800 rounded-full"
             >
               <AiOutlineClose />
             </button>
           </div>
-          <div className="flex-1 space-y-6">
+          <div className="flex-1 space-y-8">
             {userInfo?.isAdmin && (
-              <div className="space-y-4 border-b border-slate-800 pb-6">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              <div className="space-y-4 border-b border-slate-800 pb-8">
+                <p className="text-[10px] font-black text-indigo-500 uppercase tracking-[4px]">
                   Admin Control
                 </p>
-                <Link
-                  to="/admin/dashboard"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block text-xl text-white"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  to="/admin/productlist"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block text-xl text-white"
-                >
-                  Products
-                </Link>
-                <Link
-                  to="/admin/orderlist"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block text-xl text-white"
-                >
-                  Orders
-                </Link>
+                <div className="grid grid-cols-1 gap-6">
+                  <Link
+                    to="/admin/dashboard"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="text-2xl font-bold text-white"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/admin/productlist"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="text-2xl font-bold text-white"
+                  >
+                    Products
+                  </Link>
+                  <Link
+                    to="/admin/categorylist"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="text-2xl font-bold text-white"
+                  >
+                    Categories
+                  </Link>
+                  <Link
+                    to="/admin/orderlist"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="text-2xl font-bold text-white"
+                  >
+                    Orders
+                  </Link>
+                  <Link
+                    to="/admin/userlist"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="text-2xl font-bold text-white"
+                  >
+                    User List
+                  </Link>
+                </div>
               </div>
             )}
-            <Link
-              to="/profile"
-              onClick={() => setShowMobileMenu(false)}
-              className="block text-xl text-white"
-            >
-              My Profile
-            </Link>
-            <button
-              onClick={logoutHandler}
-              className="block text-xl text-red-500 font-bold"
-            >
-              Logout
-            </button>
+            <div className="space-y-6">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[4px]">
+                Personal
+              </p>
+              <Link
+                to="/profile"
+                onClick={() => setShowMobileMenu(false)}
+                className="block text-2xl font-bold text-white"
+              >
+                My Profile
+              </Link>
+              <button
+                onClick={logoutHandler}
+                className="block text-2xl text-red-500 font-bold pt-4"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       )}
