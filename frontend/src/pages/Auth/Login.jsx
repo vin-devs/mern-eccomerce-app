@@ -73,22 +73,10 @@ const Login = () => {
       {/* Right Side: Login Form */}
       <div className="flex w-full flex-col justify-center px-8 py-12 lg:w-[550px] bg-[#0a0a0c] border-l border-slate-800/60 shadow-2xl">
         <div className="mx-auto w-full max-sm">
-          {/* MarketBaseX Integrated Logo */}
+          {/* MarketBaseX Integrated Logo - FIXED: Swapped SVG for 'X' */}
           <div className="mb-14 flex items-center gap-4 group cursor-default">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-pink-600 shadow-lg shadow-indigo-600/30 transition-transform duration-500 group-hover:rotate-[360deg]">
-              <svg
-                className="w-6 h-6 text-white"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                <line x1="12" y1="22.08" x2="12" y2="12" />
-              </svg>
+              <span className="text-xl font-black text-white">X</span>
             </div>
             <div className="flex flex-col leading-none">
               <span className="text-2xl font-black text-white tracking-tighter uppercase flex items-center gap-1">
@@ -159,7 +147,7 @@ const Login = () => {
               type="submit"
               className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all active:scale-95 mt-2"
             >
-              {isLoading ? "Logging in..." : "Sign In"}
+              {isLoading ? <Loader size="sm" /> : "Sign In"}
             </button>
           </form>
 

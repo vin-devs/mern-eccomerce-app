@@ -79,27 +79,14 @@ const Register = () => {
       {/* Right Side: Form Section */}
       <div className="flex w-full flex-col justify-center px-8 py-12 lg:w-[550px] bg-[#0a0a0c] border-l border-slate-800/60 shadow-2xl">
         <div className="mx-auto w-full max-w-sm">
-          {/* MarketBaseX Integrated Logo */}
+          {/* MarketBaseX Integrated Logo - FIXED: Removed SVG for clean 'X' */}
           <div className="mb-14 flex items-center gap-4 group cursor-default">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-pink-600 shadow-lg shadow-indigo-600/30 transition-transform duration-500 group-hover:rotate-[360deg]">
-              <svg
-                className="w-6 h-6 text-white"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                <line x1="12" y1="22.08" x2="12" y2="12" />
-              </svg>
+              <span className="text-xl font-black text-white">X</span>
             </div>
             <div className="flex flex-col leading-none">
               <span className="text-2xl font-black text-white tracking-tighter uppercase flex items-center gap-1">
                 Market<span className="text-indigo-500">Base</span>
-                {/* The "X" Logo Icon integration */}
                 <div className="flex items-center justify-center bg-gradient-to-r from-pink-500 to-indigo-500 bg-clip-text text-transparent italic">
                   X
                 </div>
@@ -120,7 +107,6 @@ const Register = () => {
           </div>
 
           <form onSubmit={submitHandler} className="space-y-5">
-            {/* ... rest of your form inputs (Full Name, Email, Password) remain the same ... */}
             <div className="flex flex-col gap-2">
               <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">
                 Full Name
@@ -159,7 +145,7 @@ const Register = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-800/40 px-5 py-4 text-white placeholder:text-slate-600 focus:border-indigo-500 outline-none transition-all"
+                  className="w-full rounded-2xl border border-slate-800 bg-slate-800/40 px-5 py-4 text-white placeholder:text-slate-600 focus:border-indigo-500 outline-none transition-all font-medium"
                   placeholder="••••••••"
                 />
                 <button
@@ -186,7 +172,7 @@ const Register = () => {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-800/40 px-5 py-4 text-white placeholder:text-slate-600 focus:border-indigo-500 outline-none transition-all"
+                  className="w-full rounded-2xl border border-slate-800 bg-slate-800/40 px-5 py-4 text-white placeholder:text-slate-600 focus:border-indigo-500 outline-none transition-all font-medium"
                   placeholder="••••••••"
                 />
                 <button
